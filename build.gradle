@@ -1,0 +1,48 @@
+group 'org.bohverkill'
+version '1.0'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'application'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+mainClassName = "org.bohverkill.JSRGP.JSRGPControl"
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.10'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: "org.apache.logging.log4j", name: "log4j-api", version: "2.5"
+    compile group: "org.apache.logging.log4j", name: "log4j-core", version: "2.5"
+}
+
+task generateJavadoc(type: Javadoc) {
+    source = sourceSets.main.allJava
+    destinationDir = file("doc/")
+    classpath = configurations.compile
+    title = "Java Steam Random Games Picker"
+}
+
+task buildJar(type: Jar, dependsOn: ['clean', 'javadoc', 'generateJavadoc']) {
+    manifest {
+        attributes 'Implementation-Title': rootProject.name,
+                'Implementation-Version': version,
+                'Main-Class': mainClassName
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from sourceSets.main.allSource
+    from(javadoc.destinationDir) {
+        into('doc/')
+    }
+
+    with jar
+}
+
+compileJava.mustRunAfter clean
